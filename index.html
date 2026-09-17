@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AuraStream — Premium Music Player</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Dynamic Ambient Glowing Background -->
+    <div class="ambient-background" id="ambientBg"></div>
+    <div class="ambient-overlay"></div>
+
+    <!-- Drag & Drop Overlay Indicator -->
+    <div class="drag-drop-overlay" id="dragDropOverlay">
+      <div class="drag-drop-content">
+        <i class="fa-solid fa-cloud-arrow-up"></i>
+        <h3>Drop your audio files here</h3>
+        <p>Supports MP3, WAV, FLAC, OGG, AAC</p>
+      </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div class="app-container">
+      <!-- Top Navigation Header -->
+      <header class="app-header">
+        <div class="brand">
+          <div class="brand-logo">
+            <span class="bar bar-1"></span>
+            <span class="bar bar-2"></span>
+            <span class="bar bar-3"></span>
+            <span class="bar bar-4"></span>
+          </div>
+          <div class="brand-text">
+            <h1>AuraStream</h1>
+            <span class="badge-pro">STUDIO Hi-Fi</span>
+          </div>
+        </div>
+
+        <!-- Global Search Bar -->
+        <div class="search-container">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search tracks, artists, albums..."
+            autocomplete="off"
+          />
+          <button class="clear-search-btn" id="clearSearchBtn" title="Clear Search">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Top Header Action Buttons -->
+        <div class="header-actions">
+          <label for="audioFileInput" class="btn-icon-labeled" title="Import Audio Files">
+            <i class="fa-solid fa-folder-plus"></i>
+            <span>Import Songs</span>
+          </label>
+          <input
+            type="file"
+            id="audioFileInput"
+            accept="audio/*"
+            multiple
+            style="display: none"
+          />
+
+          <button class="icon-btn" id="shortcutsBtn" title="Keyboard Shortcuts (Press ?)">
+            <i class="fa-solid fa-keyboard"></i>
+          </button>
+
+          <button class="icon-btn" id="sleepTimerBtn" title="Sleep Timer">
+            <i class="fa-solid fa-moon"></i>
+            <span class="sleep-timer-badge" id="sleepTimerBadge"></span>
+          </button>
+
+          <button class="icon-btn theme-toggle-btn" id="themeToggleBtn" title="Toggle Visualizer Style">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Content Layout (Dual Workspace) -->
+      <main class="main-layout">
+        <!-- LEFT: Primary Player Deck -->
+        <section class="player-card glass-panel">
+          <!-- Top Card Meta Bar -->
+          <div class="card-meta">
+            <span class="meta-tag" id="trackIndexBadge">
+              <i class="fa-solid fa-music"></i> Track 1 of 4
+            </span>
+            <div class="audio-quality-badge" id="qualityBadge">
+              <i class="fa-solid fa-wave-square"></i> FLAC 24-bit / 96kHz
+            </div>
+            <button class="like-btn" id="likeTrackBtn" title="Add to Liked Songs (L)">
+              <i class="fa-regular fa-heart"></i>
+            </button>
+          </div>
+
+          <!-- Album Art Showcase with 3D Vinyl Experience -->
+          <div class="art-turntable-container">
+            <div class="vinyl-sleeve" id="vinylSleeve">
+              <div class="art-glow" id="artGlow"></div>
+              <div class="track-artwork" id="trackArt"></div>
+              <div class="vinyl-disc" id="vinylDisc">
+                <div class="vinyl-grooves"></div>
+                <div class="vinyl-label" id="vinylLabel"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Track Info -->
+          <div class="track-info">
+            <div class="marquee-wrapper">
+              <h2 class="track-title" id="trackTitle">Tum Ho</h2>
+            </div>
+            <p class="track-artist" id="trackArtist">Mohit Chauhan, A.R. Rahman</p>
+            <div class="track-tags" id="trackTags">
+              <span class="pill">Bollywood</span>
+              <span class="pill">Melody</span>
+              <span class="pill">Original</span>
+            </div>
+          </div>
+
+          <!-- Real-Time Audio Visualizer Canvas -->
+          <div class="visualizer-wrapper">
+            <canvas id="visualizerCanvas" width="500" height="70"></canvas>
+            <div class="visualizer-controls">
+              <button class="vis-mode-btn active" data-mode="bars" title="Frequency Bars">
+                <i class="fa-solid fa-chart-simple"></i>
+              </button>
+              <button class="vis-mode-btn" data-mode="wave" title="Audio Waveform">
+                <i class="fa-solid fa-water"></i>
+              </button>
+              <button class="vis-mode-btn" data-mode="glow" title="Bass Pulse">
+                <i class="fa-solid fa-circle-dot"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Progress Bar with Scrubbing & Hover Preview -->
+          <div class="progress-section">
+            <div class="progress-bar-container" id="progressBarContainer">
+              <div class="progress-hover-tooltip" id="progressTooltip">00:00</div>
+              <div class="progress-buffered" id="progressBuffered"></div>
+              <div class="progress-fill" id="progressFill"></div>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value="0"
+                step="0.1"
+                class="seek-slider"
+                id="seekSlider"
+                aria-label="Seek track position"
+              />
+            </div>
+            <div class="time-display">
+              <span class="time-current" id="currentTime">00:00</span>
+              <span class="time-divider">/</span>
+              <span class="time-duration" id="totalDuration">00:00</span>
+            </div>
+          </div>
+
+          <!-- Primary Control Deck -->
+          <div class="controls-deck">
+            <!-- Shuffle -->
+            <button
+              class="control-btn secondary-btn"
+              id="shuffleBtn"
+              title="Shuffle Queue (S)"
+            >
+              <i class="fa-solid fa-shuffle"></i>
+            </button>
+
+            <!-- Previous Track -->
+            <button
+              class="control-btn secondary-btn"
+              id="prevBtn"
+              title="Previous Track (P or Left Arrow)"
+            >
+              <i class="fa-solid fa-backward-step"></i>
+            </button>
+
+            <!-- Play / Pause Main Action -->
+            <button
+              class="control-btn play-btn"
+              id="playPauseBtn"
+              title="Play/Pause (Spacebar)"
+            >
+              <i class="fa-solid fa-play" id="playPauseIcon"></i>
+            </button>
+
+            <!-- Next Track -->
+            <button
+              class="control-btn secondary-btn"
+              id="nextBtn"
+              title="Next Track (N or Right Arrow)"
+            >
+              <i class="fa-solid fa-forward-step"></i>
+            </button>
+
+            <!-- Repeat Mode (Off, All, One) -->
+            <button
+              class="control-btn secondary-btn repeat-btn"
+              id="repeatBtn"
+              title="Repeat Mode: Off (R)"
+            >
+              <i class="fa-solid fa-repeat" id="repeatIcon"></i>
+              <span class="repeat-indicator" id="repeatIndicator"></span>
+            </button>
+          </div>
+
+          <!-- Secondary Auxiliary Deck (Speed, Volume, Audio Boost) -->
+          <div class="aux-deck">
+            <!-- Playback Speed Dropdown -->
+            <div class="speed-selector-wrapper">
+              <button class="aux-btn" id="speedBtn" title="Playback Speed">
+                <i class="fa-solid fa-gauge-high"></i>
+                <span id="speedValue">1.0x</span>
+              </button>
+              <div class="speed-menu" id="speedMenu">
+                <button class="speed-option" data-speed="0.5">0.5x</button>
+                <button class="speed-option" data-speed="0.75">0.75x</button>
+                <button class="speed-option active" data-speed="1.0">1.0x (Normal)</button>
+                <button class="speed-option" data-speed="1.25">1.25x</button>
+                <button class="speed-option" data-speed="1.5">1.5x</button>
+                <button class="speed-option" data-speed="2.0">2.0x</button>
+              </div>
+            </div>
+
+            <!-- Volume Control & Mute -->
+            <div class="volume-container">
+              <button class="aux-btn volume-btn" id="muteBtn" title="Mute/Unmute (M)">
+                <i class="fa-solid fa-volume-high" id="volumeIcon"></i>
+              </button>
+              <div class="volume-slider-wrapper">
+                <div class="volume-fill" id="volumeFill"></div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value="85"
+                  class="volume-slider"
+                  id="volumeSlider"
+                  aria-label="Volume level"
+                />
+              </div>
+              <span class="volume-percent" id="volumePercent">85%</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- RIGHT: Interactive Multi-Tab Workspace (Playlist / Lyrics / Equalizer) -->
+        <section class="workspace-card glass-panel">
+          <!-- Workspace Navigation Tabs -->
+          <nav class="workspace-tabs">
+            <button class="tab-btn active" data-tab="queueTab" id="tabQueueBtn">
+              <i class="fa-solid fa-list-ul"></i>
+              <span>Queue & Playlist</span>
+              <span class="tab-badge" id="queueCountBadge">4</span>
+            </button>
+            <button class="tab-btn" data-tab="lyricsTab" id="tabLyricsBtn">
+              <i class="fa-solid fa-align-left"></i>
+              <span>Live Lyrics</span>
+            </button>
+            <button class="tab-btn" data-tab="eqTab" id="tabEqBtn">
+              <i class="fa-solid fa-sliders"></i>
+              <span>Equalizer & FX</span>
+            </button>
+          </nav>
+
+          <!-- TAB 1: Queue & Playlist Content -->
+          <div class="tab-content active" id="queueTab">
+            <!-- Playlist Action Subheader -->
+            <div class="playlist-header">
+              <div class="filter-pills">
+                <button class="filter-pill active" data-filter="all">All Tracks</button>
+                <button class="filter-pill" data-filter="favorites">
+                  <i class="fa-solid fa-heart"></i> Liked (<span id="likedCount">0</span>)
+                </button>
+                <button class="filter-pill" data-filter="custom">
+                  <i class="fa-solid fa-upload"></i> Uploaded
+                </button>
+              </div>
+
+              <div class="playlist-actions">
+                <button class="action-link" id="shuffleAllBtn" title="Shuffle All Tracks">
+                  <i class="fa-solid fa-shuffle"></i> Shuffle
+                </button>
+                <button class="action-link" id="clearUploadedBtn" title="Clear Uploaded Tracks">
+                  <i class="fa-regular fa-trash-can"></i> Clear
+                </button>
+              </div>
+            </div>
+
+            <!-- Scrollable Track List -->
+            <div class="track-list" id="trackList">
+              <!-- Dynamically populated via JavaScript -->
+            </div>
+
+            <!-- Local Upload Drop Zone Banner -->
+            <div class="upload-dropzone" id="uploadDropzone">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+              <div>
+                <strong>Want to play your own songs?</strong>
+                <p>Drag & drop MP3, WAV, FLAC files or click to browse</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: Live Lyrics Content -->
+          <div class="tab-content" id="lyricsTab">
+            <div class="lyrics-header">
+              <div class="lyrics-track-info">
+                <h4 id="lyricsSongTitle">Tum Ho</h4>
+                <span id="lyricsArtistName">Mohit Chauhan</span>
+              </div>
+              <div class="lyrics-actions">
+                <button class="lyrics-size-btn" id="lyricsFontDecr" title="Smaller text">A-</button>
+                <button class="lyrics-size-btn" id="lyricsFontIncr" title="Larger text">A+</button>
+                <button class="lyrics-autoscroll-btn active" id="lyricsAutoScrollToggle" title="Toggle Auto-Scroll">
+                  <i class="fa-solid fa-arrows-up-down"></i> Sync
+                </button>
+              </div>
+            </div>
+            <div class="lyrics-container" id="lyricsContainer">
+              <!-- Dynamically populated synchronized lyrics -->
+            </div>
+          </div>
+
+          <!-- TAB 3: Equalizer & Audio FX Content -->
+          <div class="tab-content" id="eqTab">
+            <div class="eq-header">
+              <div>
+                <h4>Studio Equalizer (Web Audio API)</h4>
+                <p>Fine-tune acoustic balance & frequency response</p>
+              </div>
+              <button class="btn-outline" id="eqResetBtn">
+                <i class="fa-solid fa-rotate-left"></i> Reset
+              </button>
+            </div>
+
+            <!-- EQ Presets -->
+            <div class="eq-presets-container">
+              <label>Acoustic Profile Presets:</label>
+              <div class="eq-presets-grid" id="eqPresetsGrid">
+                <button class="eq-preset-btn active" data-preset="flat">Flat (Default)</button>
+                <button class="eq-preset-btn" data-preset="bass">Bass Boost 🔥</button>
+                <button class="eq-preset-btn" data-preset="vocal">Vocal Clarity 🎙️</button>
+                <button class="eq-preset-btn" data-preset="treble">Treble Bright ✨</button>
+                <button class="eq-preset-btn" data-preset="electronic">Electronic / EDM ⚡</button>
+                <button class="eq-preset-btn" data-preset="rock">Rock / Metal 🎸</button>
+                <button class="eq-preset-btn" data-preset="acoustic">Acoustic / Warm ☕</button>
+              </div>
+            </div>
+
+            <!-- Multi-Band Frequency Sliders -->
+            <div class="eq-sliders-board">
+              <div class="eq-band">
+                <div class="eq-value" id="val60">0 dB</div>
+                <div class="eq-slider-track">
+                  <input
+                    type="range"
+                    min="-12"
+                    max="12"
+                    value="0"
+                    step="0.5"
+                    class="eq-vertical-slider"
+                    id="eqBand60"
+                  />
+                </div>
+                <div class="eq-label">60 Hz<br /><small>Sub-Bass</small></div>
+              </div>
+
+              <div class="eq-band">
+                <div class="eq-value" id="val250">0 dB</div>
+                <div class="eq-slider-track">
+                  <input
+                    type="range"
+                    min="-12"
+                    max="12"
+                    value="0"
+                    step="0.5"
+                    class="eq-vertical-slider"
+                    id="eqBand250"
+                  />
+                </div>
+                <div class="eq-label">250 Hz<br /><small>Bass</small></div>
+              </div>
+
+              <div class="eq-band">
+                <div class="eq-value" id="val1k">0 dB</div>
+                <div class="eq-slider-track">
+                  <input
+                    type="range"
+                    min="-12"
+                    max="12"
+                    value="0"
+                    step="0.5"
+                    class="eq-vertical-slider"
+                    id="eqBand1k"
+                  />
+                </div>
+                <div class="eq-label">1 kHz<br /><small>Mids</small></div>
+              </div>
+
+              <div class="eq-band">
+                <div class="eq-value" id="val4k">0 dB</div>
+                <div class="eq-slider-track">
+                  <input
+                    type="range"
+                    min="-12"
+                    max="12"
+                    value="0"
+                    step="0.5"
+                    class="eq-vertical-slider"
+                    id="eqBand4k"
+                  />
+                </div>
+                <div class="eq-label">4 kHz<br /><small>Upper Mids</small></div>
+              </div>
+
+              <div class="eq-band">
+                <div class="eq-value" id="val16k">0 dB</div>
+                <div class="eq-slider-track">
+                  <input
+                    type="range"
+                    min="-12"
+                    max="12"
+                    value="0"
+                    step="0.5"
+                    class="eq-vertical-slider"
+                    id="eqBand16k"
+                  />
+                </div>
+                <div class="eq-label">16 kHz<br /><small>Treble</small></div>
+              </div>
+            </div>
+
+            <!-- Spatial 3D / Bass Boost Toggles -->
+            <div class="eq-features-grid">
+              <div class="feature-toggle-card" id="bassBoostToggleCard">
+                <div class="toggle-info">
+                  <strong>Deep Bass Maximizer</strong>
+                  <p>Dynamic low-end resonance enhancement</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="bassBoostCheckbox" />
+                  <span class="slider-round"></span>
+                </label>
+              </div>
+              <div class="feature-toggle-card" id="surroundToggleCard">
+                <div class="toggle-info">
+                  <strong>Stereo Widener</strong>
+                  <p>Immersive spatial acoustic soundstage</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="surroundCheckbox" />
+                  <span class="slider-round"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Sleep Timer Modal -->
+    <div class="modal-overlay" id="sleepTimerModal">
+      <div class="modal-card glass-panel">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-moon"></i> Sleep Timer</h3>
+          <button class="modal-close-btn" id="closeSleepTimerModal">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <p class="modal-desc">Audio will gently fade out and pause when timer runs out.</p>
+        <div class="timer-options-grid">
+          <button class="timer-preset-btn" data-minutes="0">Turn Off</button>
+          <button class="timer-preset-btn" data-minutes="15">15 Minutes</button>
+          <button class="timer-preset-btn" data-minutes="30">30 Minutes</button>
+          <button class="timer-preset-btn" data-minutes="45">45 Minutes</button>
+          <button class="timer-preset-btn" data-minutes="60">60 Minutes</button>
+          <button class="timer-preset-btn" data-minutes="end">End of Track</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Modal -->
+    <div class="modal-overlay" id="shortcutsModal">
+      <div class="modal-card glass-panel shortcuts-card">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-keyboard"></i> Keyboard Shortcuts</h3>
+          <button class="modal-close-btn" id="closeShortcutsModal">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div class="shortcuts-grid">
+          <div class="shortcut-row">
+            <span class="shortcut-action">Play / Pause</span>
+            <span class="key-badge">Spacebar</span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-action">Next Track</span>
+            <span class="key-badge">N</span> or <span class="key-badge">Shift + →</span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-action">Previous Track</span>
+            <span class="key-badge">P</span> or <span class="key-badge">Shift + ←</span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-action">Seek Forward (+5s)</span>
+            <span class="key-badge">→</span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-action">Seek Backward (-5s)</span>
+            <span class="key-badge">←</span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-action">Volume Up / Down (±5%)</span>
+            <span class="key-badge">↑</span> / <span class="key-badge">↓</span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-action">Mute / Unmute</span>
+            <span class="key-badge">M</span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-action">Like Track</span>
+            <span class="key-badge">L</span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-action">Shuffle Mode</span>
+            <span class="key-badge">S</span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-action">Repeat Mode (Off/All/One)</span>
+            <span class="key-badge">R</span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-action">Toggle Lyrics</span>
+            <span class="key-badge">Y</span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-action">Toggle Equalizer</span>
+            <span class="key-badge">E</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
